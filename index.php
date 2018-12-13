@@ -8,6 +8,9 @@
 
 require './config.php';
 
+
+$url = isset($_GET['url']) ? $_GET['url'] : $_SERVER['HTTP_REFERER'];
+
 $local = @file_get_contents('token.json');
 $token = null;
 if ($local) {
@@ -68,7 +71,6 @@ try {
   var_dump($e);
 }
 $timestamp = time();
-$url = isset($_GET['url']) ? $_GET['url'] : 'http://kongfumonster.meathill.com/';
 $params = [
   'noncestr' => $nonce,
   'jsapi_ticket' => $ticket,
@@ -78,7 +80,14 @@ $params = [
 ksort($params);
 $signature = sha1(urldecode(http_build_query($params)));
 
-header('Content: application/json');
-$params['signature'] = $signature;
+header('Content: text/javascript');
 
-echo json_encode($params);
+echo '
+wx.config({
+    appId: "' . WEIXIN_APP_ID . '",
+    timestamp: ' . $timestamp . ',
+    nonceStr: "' . $nonce . '",
+    signature: "' . $signature . '",
+    jsApiList: ["updateAppMessageShareData", "updateTimelineShareData"],
+});
+';
